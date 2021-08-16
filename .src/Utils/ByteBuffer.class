@@ -1,0 +1,237 @@
+' Gambas class file
+
+Static Public BIG_ENDIAN As Integer = 0 
+Static Public LITTLE_ENDIAN As Integer = 1 
+
+Static Private pow2 As Long[]
+
+Private _order As Integer = LITTLE_ENDIAN
+
+Private _bytes As Byte[] 
+Private _nbytes As Integer
+Private _current As Integer
+
+
+Static Public Function Create() As ByteBuffer
+  Dim buffer As ByteBuffer = New ByteBuffer_gb
+  fillPow2()
+  Return buffer
+End
+
+Public Sub _new()
+  fillPow2()
+End
+
+
+Public Function getByteFromHex2(s As String) As Integer
+  Dim ch1 As Integer
+  Dim ch2 As Integer
+  Dim n As Byte
+  
+  ch1 = Asc(s)
+  ch2 = Asc(Mid(s, 2, 1))
+  If ch1 >= 48 And ch1 <= 57 Then
+    ch1 = ch1 - 48
+  Else If ch1 >= 65 And ch1 <= 70 Then
+    ch1 = ch1 - 55
+  Endif
+  If ch2 >= 48 And ch2 <= 57 Then
+    ch2 = ch2 - 48
+  Else If ch2 >= 65 And ch2 <= 70 Then
+    ch2 = ch2 - 55
+  Endif
+  
+  n = Me.shiftLeft(ch1, 4) + ch2
+  Return n
+End
+
+Public Function setBytesFromHex(s As String) As Boolean
+	Dim i As Integer
+  Dim ch As Byte
+  
+	Me.Close()
+  
+  If (Len(s) And 1) = 1 Then
+		Return False
+	End If
+  s = Upper(s)
+	_nbytes = Len(s) / 2
+  _bytes = New Byte[_nbytes]
+  
+	For i = 0 To _nbytes - 1
+		ch = Me.getByteFromHex2(Mid(s, (i * 2) + 1, 2))
+		_bytes[i] = ch
+	Next
+	_current = 0
+	Return True
+End
+
+Public Function Size() As Integer
+  Return _nbytes
+End
+
+Public Sub setOrder(order As Integer)
+  _order = order
+End
+
+Public Function getOrder() As Integer
+  Return _order
+End
+
+Public Function getByte() As Byte
+  Dim x As Integer = _current 
+  _current = _current + 1
+  Return _bytes[x]
+End
+
+Public Function getShort() As Short
+  Dim bA As Long 
+  Dim bB As Long
+  Dim x As Integer
+
+  bA = Me.getByte()
+  bB = Me.getByte()
+  If _order == ByteBuffer.LITTLE_ENDIAN Then
+    ' BA
+    x = Me.shiftLeft(bB, 8) + bA
+  Else
+    ' AB
+    x = Me.shiftLeft(bA, 8) + bB
+  Endif
+  Return x
+End
+
+Public Function getInt() As Integer
+  Dim bA As Long 
+  Dim bB As Long
+  Dim bC As Long
+  Dim bD As Long
+  Dim x As Integer
+
+  bA = Me.getByte()
+  bB = Me.getByte()
+  bC = Me.getByte()
+  bD = Me.getByte()
+
+  If _order == ByteBuffer.LITTLE_ENDIAN Then
+    ' DCBA
+    x = Me.shiftLeft(bD, 24) + Me.shiftLeft(bC, 16) + Me.shiftLeft(bB, 8) + bA
+  Else
+    ' ABCD
+    x = Me.shiftLeft(bA, 24) + Me.shiftLeft(bB, 16) + Me.shiftLeft(bC, 8) + bD
+  Endif
+  Return x
+End
+
+Public Function getLong() As Long 
+  Dim bA As Long 
+  Dim bB As Long
+  Dim bC As Long
+  Dim bD As Long
+  Dim bE As Long
+  Dim bF As Long
+  Dim bG As Long
+  Dim bH As Long
+  Dim x As Long
+
+  bA = Me.getByte()
+  bB = Me.getByte()
+  bC = Me.getByte()
+  bD = Me.getByte()
+  bE = Me.getByte()
+  bF = Me.getByte()
+  bG = Me.getByte()
+  bH = Me.getByte()
+
+  If _order == ByteBuffer.LITTLE_ENDIAN Then
+    ' HGFEDCBA
+    x = Me.shiftLeft(bH, 56) + Me.shiftLeft(bG, 48) + Me.shiftLeft(bF, 40) + Me.shiftLeft(bE, 32) + Me.shiftLeft(bD, 24) + Me.shiftLeft(bC, 16) + Me.shiftLeft(bB, 8) + bA
+  Else
+    ' ABCDEFGH
+    x = Me.shiftLeft(bA, 56) + Me.shiftLeft(bB, 48) + Me.shiftLeft(bC, 40) + Me.shiftLeft(bD, 32) + Me.shiftLeft(bE, 24) + Me.shiftLeft(bF, 16) + Me.shiftLeft(bG, 8) + bH
+  Endif
+  Return x
+End
+
+Public Function getDouble() As Float
+  Dim bA As Long 
+  Dim bB As Long
+  Dim bC As Long
+  Dim bD As Long
+  Dim bE As Long
+  Dim bF As Long
+  Dim bG As Long
+  Dim bH As Long
+  Dim x As Float
+
+  bA = Me.getByte()
+  bB = Me.getByte()
+  bC = Me.getByte()
+  bD = Me.getByte()
+  bE = Me.getByte()
+  bF = Me.getByte()
+  bG = Me.getByte()
+  bH = Me.getByte()
+
+  If _order == Me.getInternalOrder() Then
+    x = Me.getDoubleFromBytes(bA, bB, bC, bD, bE, bF, bG, bH)
+  Else
+    x = Me.getDoubleFromBytes(bH, bG, bF, bE, bD, bC, bB, bA)
+  Endif
+  Return x
+End
+
+Public Function getInternalOrder() As Integer
+  ' Sobreescribir este metodo
+  Return -1  
+End
+
+Public Sub Close() 
+  ' Sobreescribir este metodo si procede
+End
+
+Static Private Sub fillPow2() 
+  If IsNull(pow2) Then
+    Dim i As Integer
+    Dim x As Long
+    Dim n As Long
+
+    pow2 = New Long[65]
+    
+    pow2[0] = 1
+    n = 1
+    For i = 1 To 64
+     n = n * 2
+     pow2[i] = n
+    Next
+  Endif
+End
+
+Public Function shiftLeft(n As Long, bits As Integer) As Long
+    If bits == 0 Then
+      Return n
+    Endif
+    Dim r As Long
+    r = n * pow2[bits]
+    Return r
+End 
+
+Public Function shiftright(n As Long, bits As Integer) As Long
+    ' 
+    ' https://www.codegrepper.com/code-examples/vb/vba+bitshift+right
+    ' 
+    If bits == 0 Then
+      Return n
+    Endif
+    Dim d As Long
+    Dim r As Long
+    d = pow2[bits]
+    r = (n And -d) \ d
+    Return r
+End
+
+Public Function getDoubleFromBytes(bA As Byte, bB As Byte, bC As Byte, bD As Byte, bE As Byte, bF As Byte, bG As Byte, bH As Byte) As Float
+  ' Sobreescribir este metodo
+  Return 0
+End
+
