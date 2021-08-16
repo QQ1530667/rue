@@ -2,31 +2,173 @@
 
 
 Public Sub Main()
+  testShift()
+  testByteBuffer()
+  testPoints2D()
+  testLines2D()
+End
 
-  Print "Begin"
+Public Sub testShift()
   
-  Dim buffer As ByteBuffer = New ByteBuffer_gb
-  Dim parser As WKBParser = New WKBParser
+  Dim i As Integer
+  Dim buffer As ByteBuffer
+  Dim results As Long[]
+  Dim r As Long
+  Dim n As Integer
+  
+  Print "Begin testShift"
+  
+  results = New Long[65]
+  n = 0
+  For i = 1 To 16 
+    results[n + 0] = Val("&H" & Left("0000000000000000", 16 - i) & "1" & Left("0000000000000000", i - 1))
+    results[n + 1] = Val("&H" & Left("0000000000000000", 16 - i) & "2" & Left("0000000000000000", i - 1))
+    results[n + 2] = Val("&H" & Left("0000000000000000", 16 - i) & "4" & Left("0000000000000000", i - 1))
+    results[n + 3] = Val("&H" & Left("0000000000000000", 16 - i) & "8" & Left("0000000000000000", i - 1))
+    n = n + 4
+  Next
+  
+  buffer = New ByteBuffer
+  For i = 0 To 64
+    r = buffer.shiftLeft(1, i) 
+    If r <> results[i] Then 
+       Print "[" & i & "] ER " & r & " EXPECTED " & results[i] 
+    Endif
+  Next
+  
+  Print "End testShift\n"
+End
 
-  Dim wkb As String = "FFFFFFFFFFFFFFFFFFFF"
-  buffer.FromHex(wkb)  
-  
-  Dim geom As Geometry = parser.parseGeometry(buffer)
-  Select Case geom.getType
-    Case Geometry.TYPE_POINT
-      Print geom.getPoint().asWKT()
-    Case Geometry.TYPE_LINE 
-      Print geom.getLine().asWKT()
-    Case Geometry.TYPE_POLYGON
-      Print geom.getPolygon().asWKT()
-    Case Geometry.TYPE_MULTIPOINT
-      Print geom.getMultiPoint().asWKT()
-    Case Geometry.TYPE_MULTILINE 
-      Print geom.getMultiLine().asWKT()
-    Case Geometry.TYPE_MULTIPOLYGON
-      Print geom.getMultiPolygon().asWKT()
-  End Select
-  
-  Print "End"
 
+Public Sub testByteBuffer()
+ 
+  Dim buffer As ByteBuffer 
+  Dim v As Variant 
+  Dim stat As String 
+  
+  Print "Begin testByteBuffer"
+  ' BIG_ENDIAN
+  '            x            byte   short    Integer      Long                 Double               Double
+  Dim hexbytes As String = "7f" & "7fff" & "7fffffff" & "7fffffffffffffff" & "4045868d9b9f0264" & "c00485f0a1125ed3" 
+        '                  127    32767    2147483647  9223372036854775807   43.05119653          -2.5654003700000003
+  buffer = ByteBuffer.Create()
+  buffer.setOrder(ByteBuffer.BIG_ENDIAN)
+  buffer.setBytesFromHex(hexbytes)
+  Print "Internal Order " & buffer.getInternalOrder()
+  v = buffer.getByte()
+  stat = IIf(v == 127, "OK", "ER")
+  Print stat & " Byte " & v 
+  v = buffer.getShort()
+  stat = IIf(v == 32767, "OK", "ER")
+  Print stat & " Short " & v
+  v = buffer.getInt()
+  stat = IIf(v == 2147483647, "OK", "ER")
+  Print stat & " Integer " & v
+  v = buffer.getLong()
+  stat = IIf(v == 9223372036854775807, "OK", "ER")
+  Print stat & " Long " & v
+  v = buffer.getDouble()
+  stat = IIf(v == 43.05119653, "OK", "ER")
+  Print stat & " Double " & v
+  v = buffer.getDouble()
+  stat = IIf(v == -2.5654003700000003, "OK", "ER")
+  Print stat & " Double " & v
+  buffer.Close()
+  Print "End testByteBuffer\n"
+End
+
+
+Public Sub testPoints2D()
+  Dim lbl As String[]
+  Dim wkb As String[]
+  Dim wkT As String[]
+  Dim parser As WKBParser 
+  Dim g As Geometry 
+  Dim p As Point
+  Dim i As Integer
+
+  Print "Begin testPoints2D"
+  lbl = New String[10]
+  wkb = New String[10]
+  wkT = New String[10]
+  lbl[0] = "Ibarra"
+  wkb[0] = "0000000001c00485f0a1125ed34045868d9b9f0264"
+  wkT[0] = "POINT (-2.5654003700000003 43.05119653)"  
+  lbl[1] = "Leza" 
+  wkb[1] = "0000000001c00513a62a76a11c40454847fcae66db"
+  wkT[1] = "POINT (-2.63459428 42.56469687)"
+  lbl[2] = "Samaniego"
+  wkb[2] = "0000000001c0056eb10afa59f94045489efd463c4f"
+  wkT[2] = "POINT (-2.67904862 42.56735197)"
+  For i = 0 To 2
+    parser = WKBParser.Create()
+    g = parser.parserFromHexWKB(wkb[i])
+    p = g.getPoint()
+     If g.asWKT() == wkt[i] Then
+       Print "[" & i & "] OK " & wkt[i] & " (" & g.getSRID() & ")"
+     Else
+       Print "[" & i & "] ER Expected " & wkt[i] & " and found " & g.asWKT()
+     Endif
+  Next
+  Print "End testPoints2D\n"
+End
+
+Public Sub testLines2D() 
+  Dim wkb As String[]
+  Dim wkT As String[]
+  Dim parser As WKBParser 
+  Dim g As Geometry 
+  Dim l As Line
+  Dim i As Integer
+
+  Print "Begin testLines2D"
+  wkb = New String[10]
+  wkT = New String[10]
+  wkb[0] = "010200000002000000b8fc87f41b3854402675029a08624340b8fc87f41b3854401b2fdd2486355140"
+  wkT[0] = "LINESTRING (80.87670624999998 38.765887500000005, 80.87670624999998 68.8363125)"
+  wkb[1] = "010200000003000000708ee4f21fea0f4000000000008046402cff21fdf6fa344024b9fc87f4a74a404f6b9a771ca44140d93d7958a8854540"
+  wkT[1] = "LINESTRING (3.9893187499999883 45, 20.980331249999992 53.31215, 35.28211874999999 43.0442)"
+  wkb[2] = "0102000000060000008051b81e850be63fa835cd3bce5e5240a24e401361bc3440ba6b09f9a06652403c575bb1bfa53840a089b0e169895040e495b20c714a20405227a089b0774d40e495b20c714a20405227a089b0774d4070cfd556ec9ffc3f4cc8073d9bba4f40"
+  wkT[2] = "LINESTRING (0.6889062499999881 73.4813375, 20.73585624999999 73.603575, 24.64745624999999 66.1470875, 8.14539374999999 58.935075, 8.14539374999999 58.935075, 1.789043749999987 63.457862500000005)"  
+  For i = 0 To 2
+    parser = WKBParser.Create()
+    g = parser.parserFromHexWKB(wkb[i])
+    l = g.getLine()
+     If g.asWKT() == wkt[i] Then
+       Print "[" & i & "] OK " & wkt[i] & " (" & g.getSRID() & ")"
+     Else
+       Print "[" & i & "] ER " & wkt[i] & " FOUND " & g.asWKT()
+     Endif
+  Next
+  Print "End testLines2D\n"
+End
+
+Public Sub testLines3D() 
+  Dim wkb As String[]
+  Dim wkT As String[]
+  Dim parser As WKBParser 
+  Dim g As Geometry 
+  Dim l As Line
+  Dim i As Integer
+
+  Print "Begin testLines3D"
+  wkb = New String[10]
+  wkT = New String[10]
+  wkb[0] = "010200000002000000b8fc87f41b3854402675029a08624340b8fc87f41b3854401b2fdd2486355140"
+  wkT[0] = "LINESTRING (80.87670624999998 38.765887500000005, 80.87670624999998 68.8363125)"
+  wkb[1] = "010200000003000000708ee4f21fea0f4000000000008046402cff21fdf6fa344024b9fc87f4a74a404f6b9a771ca44140d93d7958a8854540"
+  wkT[1] = "LINESTRING (3.9893187499999883 45, 20.980331249999992 53.31215, 35.28211874999999 43.0442)"
+  wkb[2] = "0102000000060000008051b81e850be63fa835cd3bce5e5240a24e401361bc3440ba6b09f9a06652403c575bb1bfa53840a089b0e169895040e495b20c714a20405227a089b0774d40e495b20c714a20405227a089b0774d4070cfd556ec9ffc3f4cc8073d9bba4f40"
+  wkT[2] = "LINESTRING (0.6889062499999881 73.4813375, 20.73585624999999 73.603575, 24.64745624999999 66.1470875, 8.14539374999999 58.935075, 8.14539374999999 58.935075, 1.789043749999987 63.457862500000005)"  
+  For i = 0 To 2
+    parser = WKBParser.Create()
+    g = parser.parserFromHexWKB(wkb[i])
+    l = g.getLine()
+     If g.asWKT() == wkt[i] Then
+       Print "[" & i & "] OK " & wkt[i] & " (" & g.getSRID() & ")"
+     Else
+       Print "[" & i & "] ER " & wkt[i] & " FOUND " & g.asWKT()
+     Endif
+  Next
+  Print "End testLines3D\n"
 End
