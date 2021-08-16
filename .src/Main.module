@@ -1,1 +1,32 @@
+' Gambas module file
 
+
+Public Sub Main()
+
+  Print "Begin"
+  
+  Dim buffer As ByteBuffer = New ByteBuffer_gb
+  Dim parser As WKBParser = New WKBParser
+
+  Dim wkb As String = "FFFFFFFFFFFFFFFFFFFF"
+  buffer.FromHex(wkb)  
+  
+  Dim geom As Geometry = parser.parseGeometry(buffer)
+  Select Case geom.getType
+    Case Geometry.TYPE_POINT
+      Print geom.getPoint().asWKT()
+    Case Geometry.TYPE_LINE 
+      Print geom.getLine().asWKT()
+    Case Geometry.TYPE_POLYGON
+      Print geom.getPolygon().asWKT()
+    Case Geometry.TYPE_MULTIPOINT
+      Print geom.getMultiPoint().asWKT()
+    Case Geometry.TYPE_MULTILINE 
+      Print geom.getMultiLine().asWKT()
+    Case Geometry.TYPE_MULTIPOLYGON
+      Print geom.getMultiPolygon().asWKT()
+  End Select
+  
+  Print "End"
+
+End
