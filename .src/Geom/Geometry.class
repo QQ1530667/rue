@@ -1,0 +1,75 @@
+' Gambas class file
+
+Static Public TYPE_POINT As Integer = 1
+Static Public TYPE_LINE As Integer = 2
+Static Public TYPE_POLYGON As Integer = 3
+Static Public TYPE_MULTIPOINT As Integer = 4
+Static Public TYPE_MULTILINE As Integer = 5
+Static Public TYPE_MULTIPOLIGON As Integer = 6
+Static Public TYPE_COLLECTION As Integer = 7
+
+Private haveZ_ As Boolean
+Private haveM_ As Boolean
+Private srid_ As Integer = -1
+
+Public Function getSRID() As Integer
+  Return srid_
+End
+
+Public Sub setSRID(srid As Integer)
+  srid_ = srid
+End
+
+Public Function getHaveZ() As Boolean
+  Return haveZ_
+End
+
+Public Function getHaveM() As Boolean
+  Return haveM_
+End
+
+Public Sub setHaveZ(haveZ As Boolean)
+  haveZ_ = haveZ
+End
+
+Public Sub setHaveM(haveM As Boolean)
+  haveM_ = haveM
+End
+
+Public Function getType() As Integer
+  Return 0
+End
+
+Public Function getPoint() As Point
+  Return Null
+End
+
+Public Function getLine() As Line
+  Return Null
+End
+
+Public Function getPolygon() As Polygon
+  Return Null
+End
+
+Public Function getMultiPoint() As MultiPoint
+  Return Null
+End
+
+' Public Function getMultiLine() As MultiLine
+'   Return Null
+' End
+' 
+' Public Function getMultiPolygon() As MultiPolygon
+'   Return Null
+' End
+' 
+' Public Function getCollection() As Collection
+'   Return Null
+' End
+
+Public Function asWKT() As String
+  Return Null
+End
+
+
