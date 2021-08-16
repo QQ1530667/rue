@@ -1,0 +1,72 @@
+' Gambas class file
+
+
+Inherits ByteBuffer
+
+Private _pfloat As Pointer = Null
+Private _hfloat As Stream = Null
+
+Static Private _internalOrder As Integer = -1
+
+Public Function getInternalOrder() As Integer
+  If _internalOrder <> -1 Then
+    Return _internalOrder
+  Endif
+  Dim pbytes As Pointer
+  Dim hbytes As Stream
+  Dim bA As Byte
+  Dim bB As Byte
+
+  pbytes = Alloc(20)
+  hbytes = Memory pbytes For Read Write
+  Write #hbytes, &H0001 As Short
+  Seek #hbytes, 0
+  bA = Read #hbytes As Byte
+  bB = Read #hbytes As Byte
+  Close hbytes
+  Free(pbytes)
+  If bA == 1 Then
+    _internalOrder = ByteBuffer.LITTLE_ENDIAN
+  Else 
+    _internalOrder = ByteBuffer.BIG_ENDIAN
+  Endif
+  Return _internalOrder
+End
+
+Public Sub Close() 
+  If Not IsNull(_pfloat) Then
+    Close _hfloat
+    Free(_pfloat)
+    _pfloat = Null
+    _hfloat = Null
+  Endif
+End
+
+Public Function shiftLeft(number As Long, bits As Integer) As Long
+  Return Lsl(number, bits)
+End
+
+Public Function shiftright(number As Long, bits As Integer) As Long
+  Return Lsr(number, bits)
+End
+
+Public Function getDoubleFromBytes(bA As Byte, bB As Byte, bC As Byte, bD As Byte, bE As Byte, bF As Byte, bG As Byte, bH As Byte) As Float
+  If IsNull(_hfloat) Then
+    _pfloat = Alloc(20)
+    _hfloat = Memory _pfloat For Read Write
+  Endif
+  Seek #_hfloat, 0
+  Write #_hfloat, bA As Byte
+  Write #_hfloat, bB As Byte
+  Write #_hfloat, bC As Byte
+  Write #_hfloat, bD As Byte
+  Write #_hfloat, bE As Byte
+  Write #_hfloat, bF As Byte
+  Write #_hfloat, bG As Byte
+  Write #_hfloat, bH As Byte
+  Seek #_hfloat, 0
+  
+  Dim x As Float = Read #_hfloat As Float
+  Return x
+End
+
