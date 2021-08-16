@@ -1,0 +1,62 @@
+' Gambas class file
+
+Inherits Geometry
+
+Private _x As Float
+Private _y As Float
+Private _z As Float
+Private _m As Float
+
+Public Function getType() As Integer
+  Return Geometry.TYPE_POINT
+End
+
+Public Function getPoint() As Point
+  Return Me
+End
+
+Public Sub setX(n As Float) 
+  _x = n
+End
+
+Public Sub setY(n As Float) 
+  _y = n
+End
+
+Public Sub setZ(n As Float) 
+  _z = n
+End
+
+Public Sub setM(n As Float) 
+  _m = n
+End
+
+Public Function getX() As Float
+  Return _x
+End
+
+Public Function getY() As Float
+  Return _y
+End
+
+Public Function getZ() As Float
+  Return _z
+End
+
+Public Function getM() As Float
+  Return _m
+End
+
+Public Function asWKT() As String
+  Dim wkt As String
+  If Me.getHaveZ() And Me.getHaveM() Then
+    wkt = "POINT ZM (" & _x & " " & _y & " " & _z & " " & _m & ")"
+  Else If Me.getHaveZ() Then
+    wkt = "POINT Z (" & _x & " " & _y & " " & _z & ")"
+  Else If Me.getHaveM() Then
+    wkt = "POINT M (" & _x & " " & _y & " " & _m & ")"
+  Else 
+    wkt = "POINT (" & _x & " " & _y & ")"
+  Endif
+  Return wkt
+End
