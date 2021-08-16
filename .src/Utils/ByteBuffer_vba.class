@@ -1,0 +1,78 @@
+' Gambas class file
+
+Inherits ByteBuffer
+
+' ' Clase MemoryStream
+' ' https://docs.microsoft.com/es-es/dotnet/api/system.io.memorystream?view=net-5.0
+' ' 
+' ' Clase BinaryReader
+' ' https://docs.microsoft.com/es-es/dotnet/api/system.io.binaryreader?view=net-5.0
+' '
+' ' Clase BinaryWriter
+' ' https://docs.microsoft.com/es-es/dotnet/api/system.io.binarywriter?view=net-5.0
+' '
+' 
+' Private _sfloat As MemoryStream = Null
+' Private _rfloat As BinaryReader = Null
+' 
+' Static Private _internalOrder As Integer = -1
+' 
+' Public Sub Close() 
+'   If _sfloat <> Null Then
+'     _rfloat.Dispose()
+'     _sfloat.Dispose()
+'     _sfloat = Null
+'     _rfloat = Null
+'   Endif
+' End
+' 
+' Public Function getInternalOrder() As Integer
+'   If _internalOrder <> -1 Then
+'     Return _internalOrder
+'   Endif
+'   Dim sbytes As MemoryStrean
+'   Dim wbytes As BinaryWriter
+' 	Dim rbytes As BinaryReader
+'   Dim bA As Byte
+'   Dim bB As Byte
+' 
+'   sbytes = New MemoryStrean(20)
+'   wbytes = New BinaryWriter(sbytes) 
+' 	rbytes = New BinaryReader(sbytes)
+' 
+'   wbytes.Write(&H0001 As Short)
+' 	sbytes.Seek(0, SeekOrigin.Begin)
+'   bA = rbytes.ReadByte()
+'   bB = rbytes.ReadByte()
+'   rbytes.Dispose()
+'   wbytes.Dispose()
+'   sbytes.Dispose()
+'   If bA == 1 Then
+'     _internalOrder = ByteBuffer.LITTLE_ENDIAN
+'   Else 
+'     _internalOrder = ByteBuffer.BIG_ENDIAN
+'   Endif
+'   Return _internalOrder
+' End
+' 
+' Public Function getDoubleFromBytes(bA As Byte, bB As Byte, bC As Byte, bD As Byte, bE As Byte, bF As Byte, bG As Byte, bH As Byte) As Float
+'   Dim x As Float
+'   
+'   If _sfloat == Null Then 
+'     _sfloat = New MemoryStrean(20)
+'    	_rfloat = New BinaryReader(_sfloat)
+'   Endif
+' 	_sfloat.Seek(0, SeekOrigin.Begin)
+'   _sfloat.WriteByte(bA)
+'   _sfloat.WriteByte(bB)
+'   _sfloat.WriteByte(bC)
+'   _sfloat.WriteByte(bD)
+'   _sfloat.WriteByte(bE)
+'   _sfloat.WriteByte(bF)
+'   _sfloat.WriteByte(bG)
+'   _sfloat.WriteByte(bH)
+' 	_sfloat.Seek(0, SeekOrigin.Begin)
+'   x = _rfloat.ReadDouble()
+'   Return x
+' End
+
