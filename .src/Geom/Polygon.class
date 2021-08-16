@@ -1,0 +1,42 @@
+' Gambas class file
+
+Inherits Geometry
+
+Private _vertices As Point[]
+Private _rings As Ring[]
+
+Public Function getType() As Integer
+  Return Geometry.TYPE_POLYGON
+End
+
+Public Function getPolygon() As Polygon
+  Return Me
+End
+
+Public Sub setVertices(vertices As Point[]) 
+  _vertices = vertices
+End
+
+Public Function getVerticesCount() As Integer
+  Return _vertices.Length
+End
+
+Public Function getVertex(n As Integer) As Point
+  Return _vertices[n]
+End
+
+Public Sub setRingsCount(count As Integer)
+  _rings = New Ring[count - 1]
+End
+
+Public Sub setRing(n As Integer, ring As Ring) 
+  _rings[n] = ring
+End
+
+Public Function getRingCount() As Integer
+  Return _rings.Length
+End
+
+Public Function getRing(n As Integer) As Ring
+  Return _rings[n]
+End
