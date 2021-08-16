@@ -1,5 +1,10 @@
 ' Gambas class file
 
+'
+' Basado en la implementacion del parser de WKB de gvSIG desktop.
+' https://redmine.gvsig.net/redmine/projects/gvsig-desktop/repository/entry/trunk/org.gvsig.desktop/org.gvsig.desktop.compat.cdc/org.gvsig.fmap.geometry/org.gvsig.fmap.geometry.jts/src/main/java/org/gvsig/fmap/geom/jts/operation/fromwkb/PostGISEWKBParser.java
+'
+
 Static Public wkbPoint As Integer = 1
 Static Public wkbLineString As Integer = 2
 Static Public wkbPolygon As Integer = 3
