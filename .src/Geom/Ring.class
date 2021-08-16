@@ -1,0 +1,15 @@
+' Gambas class file
+
+Private _vertices As Point[]
+
+Public Sub setVertices(vertices As Point[]) 
+  _vertices = vertices
+End
+
+Public Function getVerticesCount() As Integer
+  Return _vertices.Length
+End
+
+Public Function getVertex(n As Integer) As Point
+  Return _vertices[n]
+End
