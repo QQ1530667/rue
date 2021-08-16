@@ -1,0 +1,50 @@
+' Gambas class file
+
+Inherits Geometry
+
+Private _vertices As Point[]
+
+Public Function getType() As Integer
+  Return Geometry.TYPE_LINE
+End
+
+Public Function getLine() As Line
+  Return Me
+End
+
+Public Sub setVertices(vertices As Point[]) 
+  _vertices = vertices
+End
+
+Public Function getVerticesCount() As Integer
+  Return _vertices.Length
+End
+
+Public Function getVertex(n As Integer) As Point
+  Return _vertices[n]
+End
+
+Public Function asWKT() As String
+  Dim wkt As String
+  Dim i As Integer
+  Dim p As Point
+  
+  If Me.getHaveZ() And Me.getHaveM() Then
+    'wkt = "LINESTRING ZM (" & _x & " " & _y & " " & _z & " " & _m & ")"
+  Else If Me.getHaveZ() Then
+    'wkt = "LINESTRING Z (" & _x & " " & _y & " " & _z & ")"
+  Else If Me.getHaveM() Then
+    'wkt = "LINESTRING M (" & _x & " " & _y & " " & _m & ")"
+  Else 
+    wkt = "LINESTRING ("
+    For i = 0 To Me.getVerticesCount() - 1
+      p = Me.getVertex(i)
+      If i > 0 Then
+        wkt = wkt & ", "
+      Endif
+      wkt = wkt & p.getX() & " " & p.getY() 
+    Next
+    wkt = wkt & ")"     
+  Endif
+  Return wkt
+End
