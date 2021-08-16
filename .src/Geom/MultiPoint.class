@@ -1,0 +1,29 @@
+' Gambas class file
+
+Inherits Geometry
+
+Private _points As Point[]
+
+Public Function getType() As Integer
+  Return Geometry.TYPE_MULTIPOINT
+End
+
+Public Function getMultiPoint() As MultiPoint
+  Return Me
+End
+
+Public Function getPointsCount() As Integer
+  Return _points.Length
+End
+
+Public Function getPoint(n As Integer) As Point
+  Return _points[n]
+End
+
+Public Sub setPointsCount(count As Integer)
+  _points = New Point[count - 1]
+End
+
+Public Sub setPoint(n As Integer, point As Point) 
+  _points[n] = point
+End
