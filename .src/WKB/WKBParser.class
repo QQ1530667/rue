@@ -1,1 +1,196 @@
+' Gambas class file
+
+Static Public wkbPoint As Integer = 1
+Static Public wkbLineString As Integer = 2
+Static Public wkbPolygon As Integer = 3
+Static Public wkbMultiPoint As Integer = 4
+Static Public wkbMultiLineString As Integer = 5
+Static Public wkbMultiPolygon As Integer = 6
+Static Public wkbGeometryCollection As Integer = 7
+
+
+Private haveZ As Boolean
+Private haveM As Boolean
+Private haveS As Boolean
+Private srid As Integer = -1
+
+Static Public Function Create() As WKBParser
+  Dim parser As WKBParser
+  parser = New WKBParser
+  Return parser
+End
+
+Public Function parserFromHexWKB(hexwkb As String) As Geometry 
+  Dim buffer As ByteBuffer
+  Dim parser As WKBParser 
+  Dim geom As Geometry 
+
+  buffer = ByteBuffer.Create()
+  buffer.setBytesFromHex(hexwkb)
+
+  parser = New WKBParser
+  geom = parser.parseFromByteBuffer(buffer)
+  buffer.Close()
+  Return geom
+End
+
+
+Public Function parseFromByteBuffer(buffer As ByteBuffer) As Geometry
+  Dim realtype As Integer
+  Dim geom As Geometry
+  
+  realtype = parseTypeAndSRID(buffer)
+  geom = Null
+
+  Select Case realtype
+  Case WKBParser.wkbPoint
+      geom = parsePoint(buffer)
+  Case WKBParser.wkbLineString
+      geom = parseLineString(buffer)
+  Case WKBParser.wkbPolygon
+      geom = parsePolygon(buffer)
+  Case WKBParser.wkbMultiPoint
+      geom = parseMultiPoint(buffer)
+  ' Case WKBParser.wkbMultiLineString
+  '     geom = parseMultiLineString(buffer)
+  ' Case WKBParser.wkbMultiPolygon
+  '     geom = parseMultiPolygon(buffer)
+  ' Case WKBParser.wkbGeometryCollection
+  '     geom = parseCollection(buffer)
+  Case Else
+      ' ?????
+  End Select
+
+  Return geom
+  
+End
+
+Private Function parseTypeAndSRID(buffer As ByteBuffer) As Integer
+        Dim endian As Byte
+        Dim typeword As Integer
+        Dim realtype As Integer
+
+        endian = buffer.getByte()
+        If endian = 1 Then
+            buffer.setOrder(ByteBuffer.LITTLE_ENDIAN)
+        Else 
+            buffer.setOrder(ByteBuffer.BIG_ENDIAN)
+        Endif
+        typeword = buffer.getInt()
+        
+        realtype = typeword And &H1FFFFFFF ' cut off high flag bits
+
+        haveZ = (typeword And &H80000000) <> 0
+        haveM = (typeword And &H40000000) <> 0
+        haveS = (typeword And &H20000000) <> 0
+
+        If haveS Then
+            srid = buffer.getInt()
+        Endif
+        
+        ' Intento de dar soporte a WKB junto a EWKB
+        ' https://en.wikipedia.org/wiki/Well - known_text #Well - known_binary
+        If realtype >= 3000 Then
+            haveM = True
+            haveZ = True
+            haveS = False
+            realtype = realtype - 3000
+            
+        Else If realtype >= 2000 Then
+            haveM = True
+            haveZ = False
+            haveS = False
+            realtype = realtype - 2000
+            
+        Else If realtype >= 1000 Then
+            haveM = False
+            haveZ = True
+            haveS = False
+            realtype = realtype - 1000
+        Endif
+        Return realtype
+End
+
+Private Function parsePoint(buffer As ByteBuffer) As Point
+    Dim p As Point 
+
+    p = New Point
+    p.setHaveZ(haveZ)
+    p.setHaveM(haveM)
+    p.setSRID(srid)
+    p.setX(buffer.getDouble())
+    p.setY(buffer.getDouble())
+    If haveZ Then
+        p.setZ(buffer.getDouble())
+    Endif
+    If haveM Then
+       p.setM(buffer.getDouble())
+    Endif
+    Return p
+End 
+
+Private Function parsePointArray(buffer As ByteBuffer) As Point[]
+    Dim count As Integer 
+    Dim points As Point[]
+    Dim i As Integer
+
+    count = buffer.getInt()
+    points = New Point[count]
+    For i = 0 To count - 1
+        points[i] = parsePoint(buffer)
+    Next
+    Return points
+End
+
+Private Function parseLineString(buffer As ByteBuffer) As Line
+    Dim l As Line
+    
+    l = New Line
+    l.setHaveM(haveM)
+    l.setHaveZ(haveZ)
+    l.setSRID(srid)
+    l.setVertices(parsePointArray(buffer))
+    Return l
+End
+
+Private Function parsePolygon(buffer As ByteBuffer) As Polygon 
+    Dim poly As Polygon 
+    Dim ringsCount As Integer 
+    Dim i As Integer    
+    Dim r As Ring 
+
+    ringsCount = buffer.getInt()
+    poly = New Polygon
+    poly.setHaveM(haveM)
+    poly.setHaveZ(haveZ)
+    poly.setSRID(srid)
+    poly.setVertices(parsePointArray(buffer))
+    poly.setRingsCount(ringsCount - 1)  
+    For i = 0 To ringsCount - 1
+        r = New Ring
+        r.setHaveM(haveM)
+        r.setHaveZ(haveZ)
+        r.setVertices(parsePointArray(buffer))
+        poly.setRing(i, r)
+    Next
+    Return poly
+End
+
+Private Function parseMultiPoint(buffer As ByteBuffer) As MultiPoint 
+    Dim mpoint As MultiPoint 
+    Dim count As Integer 
+    Dim i As Integer
+
+    count = buffer.getInt()
+    mpoint = New MultiPoint
+    mpoint.setHaveM(haveM)
+    mpoint.setHaveZ(haveZ)
+    mpoint.setSRID(srid)
+    mpoint.setPointsCount(buffer.getInt)
+    For i = 0 To count
+        parseTypeAndSRID(buffer)
+        mpoint.setPoint(i, parsePoint(buffer))
+    Next
+    Return mpoint
+End
 
