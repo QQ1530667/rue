@@ -1,0 +1,30 @@
+' Gambas module file
+
+' Public Function toMVBAPoint(geom As Point) As Application.Point3d
+'  Dim p As Application.Point3d
+'  
+'  p = New Application.Point3d
+'  p.X = geom.x
+'  p.Y = geom.y
+'  p.Z = geom.z
+'  Return p
+' End
+' 
+' Public Function toMVBALine(geom As Line) As Application.LineElement
+'   Dim vertices As Application.Point3D 
+'   Dim point_mvba As Application.Point3D 
+'   Dim point As Point
+'   Dim line As Application.LineElement 
+' 
+'   vertices = New Application.Point3D[geom.getCount()]
+'   For i = 0 To points.Length - 1
+'     point_mvba = vertices[i]
+'     point = points[i]
+'     point_mvba.X = Point.x
+'     point_mvba.Y = Point.y
+'     point_mvba.Z = Point.z
+'   Next
+'   Set Line = Application.CreateLineElement1(Null, vertices)
+'   Return Line
+' End
+
